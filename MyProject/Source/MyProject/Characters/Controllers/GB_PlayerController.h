@@ -29,8 +29,15 @@ private:
 	void LookUp(float Value);
 
 	void ChangeCrouchState();
+
 	void StartSprint();
 	void StopSprint();
+
+	void SwimForward(float Value);
+	void SwimRight(float Value);
+	void SwimUp(float Value);
+
+	void Mantle();
 
 	void Jump();
 

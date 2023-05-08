@@ -27,6 +27,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsCrouching = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsSprinting = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsSwimming = false;
+
 private:
 	TWeakObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 };

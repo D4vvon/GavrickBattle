@@ -15,7 +15,7 @@ class MYPROJECT_API APlayerCharacter : public AGB_BaseCharacter
 	GENERATED_BODY()
 	
 public:
-	APlayerCharacter();
+	APlayerCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void MoveForward(float Value) override;
 	virtual void MoveRight(float Value) override;
@@ -27,6 +27,13 @@ public:
 
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
+
+	virtual void OnSprintStart_Implementation() override;
+	virtual void OnSprintEnd_Implementation() override;
+
+	virtual void SwimForward(float Value) override;
+	virtual void SwimRight(float Value) override;
+	virtual void SwimUp(float Value) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")

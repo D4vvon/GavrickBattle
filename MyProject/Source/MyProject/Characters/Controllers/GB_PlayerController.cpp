@@ -19,10 +19,15 @@ void AGB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("Turn", this, &AGB_PlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &AGB_PlayerController::LookUp);
 
+	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Jump);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AGB_PlayerController::ChangeCrouchState);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AGB_PlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AGB_PlayerController::StopSprint);
+
+	InputComponent->BindAxis("SwimForward", this, &AGB_PlayerController::SwimForward);
+	InputComponent->BindAxis("SwimRight", this, &AGB_PlayerController::SwimRight);
+	InputComponent->BindAxis("SwimUp", this, &AGB_PlayerController::SwimUp);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -69,7 +74,47 @@ void AGB_PlayerController::StartSprint()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->ChangeCrouchState();
+		CachedBaseCharacter->StartSprint();
+	}
+}
+
+void AGB_PlayerController::StopSprint()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopSprint();
+	}
+}
+
+void AGB_PlayerController::SwimForward(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimForward(Value);
+	}
+}
+
+void AGB_PlayerController::SwimRight(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimRight(Value);
+	}
+}
+
+void AGB_PlayerController::SwimUp(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimUp(Value);
+	}
+}
+
+void AGB_PlayerController::Mantle()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Mantle();
 	}
 }
 

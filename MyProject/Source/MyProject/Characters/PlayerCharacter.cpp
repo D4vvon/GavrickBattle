@@ -5,8 +5,10 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/TimelineComponent.h"
 
-APlayerCharacter::APlayerCharacter()
+APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -20,13 +22,15 @@ APlayerCharacter::APlayerCharacter()
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
 
+	//SprintArmTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("SprintArmTimelineComp"));
+
 	GetCharacterMovement()->bOrientRotationToMovement = 1;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 600.0f, 0.0f);
 }
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector ForwardVector = YawRotator.RotateVector(FVector::ForwardVector);
@@ -36,7 +40,7 @@ void APlayerCharacter::MoveForward(float Value)
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
 		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
@@ -64,6 +68,44 @@ void APlayerCharacter::OnEndCrouch(float HalfHeightAdjust, float ScaledHalfHeigh
 {
 	Super::OnEndCrouch(HalfHeightAdjust, ScaledHalfHeightAdjust);
 	SpringArmComponent->TargetOffset -= FVector(0.0f, 0.0f, HalfHeightAdjust);
+}
+
+void APlayerCharacter::SwimForward(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator PitchYawRotator(GetControlRotation().Pitch, GetControlRotation().Yaw, 0.0f);
+		FVector ForwardVector = PitchYawRotator.RotateVector(FVector::ForwardVector);
+		AddMovementInput(ForwardVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimRight(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator YawRotator(0.0f, GetControlRotation().Yaw, 0.0f);
+		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
+		AddMovementInput(RightVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimUp(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		AddMovementInput(FVector::UpVector, Value);
+	}
+}
+
+void APlayerCharacter::OnSprintEnd_Implementation()
+{
+	//SprintArmTimeline->Play();
+}
+
+void APlayerCharacter::OnSprintStart_Implementation()
+{
+	//SprintArmTimeline->Reverse();
 }
 
 void APlayerCharacter::OnJumped_Implementation()
