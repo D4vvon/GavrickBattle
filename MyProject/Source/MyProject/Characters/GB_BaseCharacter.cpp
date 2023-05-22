@@ -5,12 +5,29 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MovementComponents/GB_BaseCharacterMovementComp.h"
 #include "MovementComponents/LedgeDetectorComponent.h"
+#include "Curves/CurveVector.h"
+#include "../Actor/Environment/Ladder.h"
+#include "CharacterComponents/CharacterAttributesComponent.h"
+#include "../GavrickBattleTypes.h"
+#include "Engine/DamageEvents.h"
+#include "CharacterComponents/CharacterEquipmentComponent.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 AGB_BaseCharacter::AGB_BaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGB_BaseCharacterMovementComp>(ACharacter::CharacterMovementComponentName))
 {
 	GB_BaseCharacterMovementComp = StaticCast<UGB_BaseCharacterMovementComp*>(GetCharacterMovement());
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
+	CharacterAttributesComponent = CreateDefaultSubobject<UCharacterAttributesComponent>(TEXT("CharacterAttributes"));
+	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
+}
+
+void AGB_BaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AGB_BaseCharacter::OnDeath);
 }
 
 // Sets default values
@@ -42,19 +59,153 @@ void AGB_BaseCharacter::StopSprint()
 	bIsSprintRequested = false;
 }
 
-void AGB_BaseCharacter::Mantle()
+void AGB_BaseCharacter::Mantle(bool bForce /*= false*/)
 {
+
+	if (!(CanMantle() || bForce))
+	{
+		return;
+	}
+
 	FLedgeDescription LedgeDescription;
 	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
 	{
+
+		FMantlingMovementParameters MantlingParameters;
+		MantlingParameters.InitialLocation = GetActorLocation();
+		MantlingParameters.InitialRotator = GetActorRotation();
+		MantlingParameters.TargetLocation = LedgeDescription.Location;
+		MantlingParameters.TartgetRotator = LedgeDescription.Rotation;
+
+		float MantlingHeight = (MantlingParameters.TargetLocation - MantlingParameters.InitialLocation).Z;
+		const FMantlingSettings& MantleSettings = GetMantleSettings(MantlingHeight);
+
+		float MinRange;
+		float MaxRange;
+		MantleSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+
+		MantlingParameters.Duration = MaxRange - MinRange;
+
+		MantlingParameters.MantlingCurve = MantleSettings.MantlingCurve;
+
+		//float StartTime = MantleSettings.MaxHeightStartTime + (MantlingHeight - MantleSettings.MinHeight) / (MantleSettings.MaxHeight - MantleSettings.MinHeight) * (MantleSettings.MaxHeightStartTime - MantleSettings.MinHeightStartTime);
 		
+		FVector2D SourceRange(MantleSettings.MinHeight, MantleSettings.MaxHeight);
+		FVector2D TargetRange(MantleSettings.MinHeightStartTime, MantleSettings.MaxHeightStartTime);
+		MantlingParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
+
+		MantlingParameters.InitialAnimationLocation = MantlingParameters.TargetLocation - MantleSettings.AnimationCorrectionZ * FVector::UpVector + MantleSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+
+		GetBaseCharacterMovementComp()->StartMantle(MantlingParameters);
+
+		UAnimInstance* AnimInstanse = GetMesh()->GetAnimInstance();
+		AnimInstanse->Montage_Play(MantleSettings.MantlingMontage, 1.0f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
+		//PlayAnimMontage(HighMantleMontage);
 	}
+}
+
+void AGB_BaseCharacter::ClimbLadderUp(float Value)
+{
+	if (!FMath::IsNearlyZero(Value) && GetBaseCharacterMovementComp()->IsOnLadder())
+	{
+		FVector LadderUpVector = GetBaseCharacterMovementComp()->GetCurrentLadder()->GetActorUpVector();
+		AddMovementInput(LadderUpVector, Value);
+	}
+}
+
+void AGB_BaseCharacter::InteractWithLadder()
+{
+	if (GetBaseCharacterMovementComp()->IsOnLadder())
+	{
+		GetBaseCharacterMovementComp()->DetachFromLadder();
+	}
+	else
+	{
+		const ALadder* AvailableLadder = GetAvailableLadder();
+		if (IsValid(AvailableLadder))
+		{
+			if (AvailableLadder->GetIsOnTop())
+			{
+				PlayAnimMontage(AvailableLadder->GetAttachFromTopAnimMontage());	
+			}
+			GetBaseCharacterMovementComp()->AttachToLadder(AvailableLadder);
+		}
+	}
+}
+
+const class ALadder* AGB_BaseCharacter::GetAvailableLadder() const
+{
+	const ALadder* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvailableInteractiveActors)
+	{
+		if (InteractiveActor->IsA<ALadder>())
+		{
+			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+	return Result;
+}
+
+bool AGB_BaseCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() && !GB_BaseCharacterMovementComp->IsMantling();
 }
 
 void AGB_BaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	TryChangeSprintState();
+	if (bIsSprintRequested)
+	{
+		CharacterAttributesComponent->StaminaConsumption();
+	}
+	else
+	{
+		CharacterAttributesComponent->SetCanRestoreStamina(true);
+	}
+	if (CharacterAttributesComponent->GetCurrentStamina() < 5)
+	{
+		bIsSprintRequested = false;
+	}
+}
+
+const UCharacterEquipmentComponent* AGB_BaseCharacter::GetCharacterEquipmentComponent() const
+{
+	return CharacterEquipmentComponent;
+}
+
+void AGB_BaseCharacter::RegisterInteractiveActor(AInteractiveActor* InteractiveActor)
+{
+	AvailableInteractiveActors.AddUnique(InteractiveActor);
+}
+
+void AGB_BaseCharacter::UnregisterInteractiveActor(AInteractiveActor* InteractiveActor)
+{
+	AvailableInteractiveActors.RemoveSingleSwap(InteractiveActor);
+}
+
+void AGB_BaseCharacter::Falling()
+{
+	GetCharacterMovement()->bNotifyApex = true;
+}
+
+void AGB_BaseCharacter::NotifyJumpApex()
+{
+	Super::NotifyJumpApex();
+	CurrentFallApex = GetActorLocation();
+}
+
+void AGB_BaseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	float FallHeight = (CurrentFallApex - GetActorLocation()).Z * 0.01f;
+	if (IsValid(FallDamageCurve))
+	{
+		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
+		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.GetActor());
+	}
 }
 
 void AGB_BaseCharacter::OnSprintStart_Implementation()
@@ -69,12 +220,46 @@ void AGB_BaseCharacter::OnSprintEnd_Implementation()
 
 bool AGB_BaseCharacter::CanSprint()
 {
-	return true;
+	float CurrentStamina = CharacterAttributesComponent->GetCurrentStamina();
+	if (CurrentStamina > 10.0f)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+float AGB_BaseCharacter::GetCurrentStamina()
+{
+	return CharacterAttributesComponent->GetCurrentStamina();
+}
+
+bool AGB_BaseCharacter::CanMantle() const
+{
+	return GetBaseCharacterMovementComp()->IsOnLadder();
+}
+
+void AGB_BaseCharacter::OnDeath()
+{
+	float Duration = PlayAnimMontage(OnDeathAnimMontage);
+	//GetWorld()->GetTimerManager().SetTimer(DeathMontageTimer, this, &AGB_BaseCharacter::EnableRagdoll, Duration, false);
+	if (Duration == 0.0f)
+	{
+		EnableRagdoll();
+	}
+	GetCharacterMovement()->DisableMovement();
+}
+
+const FMantlingSettings& AGB_BaseCharacter::GetMantleSettings(float LedgeHeight) const
+{
+	return LedgeHeight > LowMantleMaxHeight ? HighMantlingSettings : LowMantlingSettings;
 }
 
 void AGB_BaseCharacter::TryChangeSprintState()
 {
-	if (bIsSprintRequested && !GB_BaseCharacterMovementComp->IsSprinting() && CanSprint())
+	if (bIsSprintRequested && !GetBaseCharacterMovementComp()->IsOnLadder() && !GB_BaseCharacterMovementComp->IsSprinting() && CanSprint())
 	{
 		GB_BaseCharacterMovementComp->StartSprint();
 		OnSprintStart();
@@ -85,4 +270,21 @@ void AGB_BaseCharacter::TryChangeSprintState()
 		GB_BaseCharacterMovementComp->StopSprint();
 		OnSprintEnd();
 	}
+}
+
+bool AGB_BaseCharacter::GetIsSprintRequest()
+{
+	return bIsSprintRequested;
+}
+
+void AGB_BaseCharacter::Fire()
+{
+	CharacterEquipmentComponent->Fire();
+}
+
+void AGB_BaseCharacter::EnableRagdoll()
+{
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName(CollisionProfileRagdoll);
+	GetCapsuleComponent()->SetCollisionProfileName(CollisionProfileRagdoll);
 }

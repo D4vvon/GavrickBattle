@@ -98,16 +98,6 @@ void APlayerCharacter::SwimUp(float Value)
 	}
 }
 
-void APlayerCharacter::OnSprintEnd_Implementation()
-{
-	//SprintArmTimeline->Play();
-}
-
-void APlayerCharacter::OnSprintStart_Implementation()
-{
-	//SprintArmTimeline->Reverse();
-}
-
 void APlayerCharacter::OnJumped_Implementation()
 {
 	if (bIsCrouched)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "../../GavrickBattleTypes.h"
 #include "GB_BaseCharacterAnimInstance.generated.h"
 
 /**
@@ -32,6 +33,27 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsSwimming = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsOnLadder = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsOutOfStamina = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	float LadderSpeedRatio = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	EEquipableItemType CurrentEquippedItemType = EEquipableItemType::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsStrafing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation", meta = (UIMin = -180, UIMax = 180))
+	float Direction = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	FRotator AimRotation = FRotator::ZeroRotator;
 
 private:
 	TWeakObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;

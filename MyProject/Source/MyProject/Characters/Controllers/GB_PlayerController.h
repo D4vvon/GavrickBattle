@@ -41,6 +41,12 @@ private:
 
 	void Jump();
 
+	void ClimbLadderUp(float Value);
+
+	void InteractWithLadder();
+
+	void Fire();
+
 	TSoftObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 	
 };

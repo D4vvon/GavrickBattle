@@ -19,6 +19,7 @@ void AGB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("Turn", this, &AGB_PlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &AGB_PlayerController::LookUp);
 
+	InputComponent->BindAction("InteractWithLadder", EInputEvent::IE_Pressed, this, &AGB_PlayerController::InteractWithLadder);
 	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Jump);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AGB_PlayerController::ChangeCrouchState);
@@ -28,6 +29,10 @@ void AGB_PlayerController::SetupInputComponent()
 	InputComponent->BindAxis("SwimForward", this, &AGB_PlayerController::SwimForward);
 	InputComponent->BindAxis("SwimRight", this, &AGB_PlayerController::SwimRight);
 	InputComponent->BindAxis("SwimUp", this, &AGB_PlayerController::SwimUp);
+
+	InputComponent->BindAxis("ClimbLadderUp", this, &AGB_PlayerController::ClimbLadderUp);
+
+	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Fire);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -114,7 +119,7 @@ void AGB_PlayerController::Mantle()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Mantle();
+		CachedBaseCharacter->Mantle(false);
 	}
 }
 
@@ -123,5 +128,29 @@ void AGB_PlayerController::Jump()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->Jump();
+	}
+}
+
+void AGB_PlayerController::ClimbLadderUp(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ClimbLadderUp(Value);
+	}
+}
+
+void AGB_PlayerController::InteractWithLadder()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->InteractWithLadder();
+	}
+}
+
+void AGB_PlayerController::Fire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Fire();
 	}
 }

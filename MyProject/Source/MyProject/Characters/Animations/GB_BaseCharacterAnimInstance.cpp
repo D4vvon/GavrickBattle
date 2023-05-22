@@ -4,6 +4,8 @@
 #include "GB_BaseCharacterAnimInstance.h"
 #include "../GB_BaseCharacter.h"
 #include "../MovementComponents/GB_BaseCharacterMovementComp.h"
+#include "../CharacterComponents/CharacterAttributesComponent.h"
+#include "../CharacterComponents/CharacterEquipmentComponent.h"
 
 void UGB_BaseCharacterAnimInstance::NativeBeginPlay()
 {
@@ -21,6 +23,7 @@ void UGB_BaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	UGB_BaseCharacterMovementComp* CharacterMovementComponent = CachedBaseCharacter->GetBaseCharacterMovementComp();
+	UCharacterAttributesComponent* CharacterAttributeComponent = CachedBaseCharacter->GetCharacterAttributeConponent();
 	Speed = CharacterMovementComponent->Velocity.Size();
 	bIsFalling = CharacterMovementComponent->IsFalling();
 	bIsCrouching = CharacterMovementComponent->IsCrouching();
@@ -28,4 +31,22 @@ void UGB_BaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsSprinting = CharacterMovementComponent->IsSprinting();
 
 	bIsSwimming = CharacterMovementComponent->IsSwimming();
+
+	bIsOnLadder = CharacterMovementComponent->IsOnLadder();
+	if (bIsOnLadder)
+	{
+		LadderSpeedRatio = CharacterMovementComponent->GetLadderSpeedRatio();
+	}
+
+	bIsStrafing = !CharacterMovementComponent->bOrientRotationToMovement;
+	Direction = CalculateDirection(CharacterMovementComponent->Velocity, CachedBaseCharacter->GetActorRotation());
+
+	AimRotation = CachedBaseCharacter->GetBaseAimRotation();
+
+	bIsOutOfStamina = CharacterAttributeComponent->IsOutOfStamina() && !CachedBaseCharacter->GetIsSprintRequest();
+
+	const UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent();
+	CurrentEquippedItemType = CharacterEquipment->GetCurrentEquippedItemType();
+
+
 }

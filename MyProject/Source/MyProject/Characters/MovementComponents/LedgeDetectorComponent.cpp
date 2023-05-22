@@ -7,6 +7,10 @@
 #include "../../GavrickBattleTypes.h"
 #include "DrawDebugHelpers.h"
 #include "../../Utils/GBTraceUtils.h"
+#include "../GB_BaseCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "../../GB_GameInstance.h"
+#include "../../SubSystems/DebugSubsystem.h"
 
 
 void ULedgeDetectorComponent::BeginPlay()
@@ -18,11 +22,19 @@ void ULedgeDetectorComponent::BeginPlay()
 
 bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescription)
 {
+	float DrawTime = 2.0f;
 	UCapsuleComponent* CapsuleComponent = CachedCharacterOwner->GetCapsuleComponent();
 
 	FCollisionQueryParams QueryParams;
 	QueryParams.bTraceComplex = true;
 	QueryParams.AddIgnoredActor(GetOwner());
+
+#if ENABLE_DRAW_DEBUG
+	UDebugSubsystem* DebugSubSystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();
+	bool bIsDebugEnabled = DebugSubSystem->IsCategoryEnabled(DebugCategoryLedgeDetection);
+#else
+	bool bIsDebugEnabled = false;
+#endif
 
 	float BottomZOffset = 2.0f;
 	FVector CharacterBottom = CachedCharacterOwner->GetActorLocation() - (CapsuleComponent->GetScaledCapsuleHalfHeight() - BottomZOffset) * FVector::UpVector;
@@ -34,9 +46,8 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	FVector ForwardStartLocation = CharacterBottom + (MinimumLedgeHeight + ForwardCheckCapsuleHalfHeight) * FVector::UpVector;
 	FVector ForwardEndLocation = ForwardStartLocation + CachedCharacterOwner->GetActorForwardVector() * ForwardCheckDistance;
 
-	float DrawTime = 2.0f;
 
-	if (!GBTraceUtils::SweepCapsuleSingleByChannel(GetWorld(), ForwardCheckHitResult, ForwardStartLocation, ForwardEndLocation, ForwardCheckCapsuleRadius, ForwardCheckCapsuleHalfHeight, FQuat::Identity, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, true, DrawTime))
+	if (!GBTraceUtils::SweepCapsuleSingleByChannel(GetWorld(), ForwardCheckHitResult, ForwardStartLocation, ForwardEndLocation, ForwardCheckCapsuleRadius, ForwardCheckCapsuleHalfHeight, FQuat::Identity, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
 	{
 		return false;
 	}
@@ -52,7 +63,7 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	FVector DebugDrawCapsuleLocation = (DownwardTraceStartLocation + DownwardTraceEndLocation) * 0.5;
 	float DegubDrawCapsuleHalfHeight = (DownwardTraceEndLocation - DownwardTraceStartLocation).Size() * 0.5f;
 
-	if (!GBTraceUtils::SweepSphereSingleByChannel(GetWorld(), DownwardCheckHitResult, DownwardTraceStartLocation, DownwardTraceEndLocation, DownwardShpereCheckRadius, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, true, DrawTime))
+	if (!GBTraceUtils::SweepSphereSingleByChannel(GetWorld(), DownwardCheckHitResult, DownwardTraceStartLocation, DownwardTraceEndLocation, DownwardShpereCheckRadius, ECC_Climbing, QueryParams, FCollisionResponseParams::DefaultResponseParam, bIsDebugEnabled, DrawTime))
 	{
 		return false;
 	}
@@ -61,13 +72,14 @@ bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LedgeDescriptio
 	FVector OverlapLocation = DownwardCheckHitResult.ImpactPoint + (CapsuleComponent->GetScaledCapsuleHalfHeight() + OverlapCapsuleFloorOffset) * FVector::UpVector;
 
 
-	if (GBTraceUtils::OverlapCapsuleAnyByProfile(GetWorld(), OverlapLocation, CapsuleComponent->GetScaledCapsuleRadius(), CapsuleComponent->GetScaledCapsuleHalfHeight(), FQuat::Identity, FName("Pawn"), QueryParams, true, DrawTime))
+	if (GBTraceUtils::OverlapCapsuleBlockingByProfile(GetWorld(), OverlapLocation, CapsuleComponent->GetScaledCapsuleRadius(), CapsuleComponent->GetScaledCapsuleHalfHeight(), FQuat::Identity, CollisionProfilePawn, QueryParams, bIsDebugEnabled, DrawTime))
 	{
 		return false;
 	}
 
-	LedgeDescription.Location = DownwardCheckHitResult.ImpactPoint;
+	LedgeDescription.Location = OverlapLocation;
 	LedgeDescription.Rotation = (ForwardCheckHitResult.ImpactNormal * FVector(-1.0f, -1.0f, 0.0f)).ToOrientationRotator();
+	LedgeDescription.LedgeNormal = ForwardCheckHitResult.ImpactNormal;
 
 	return true;
 }
