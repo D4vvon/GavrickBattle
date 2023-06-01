@@ -7,11 +7,14 @@
 #include "../../SubSystems/DebugSubsystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
+#include "NiagaraFunctionLibrary.h"
 
 void UWeaponBarrel::Shot(FVector ShotStart, FVector ShotDirection, AController* Controller)
 {
 	FVector MuzzleLocation = GetComponentLocation();
 	FVector ShotEnd = ShotStart + FiringRange * ShotDirection;
+
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlashFX, MuzzleLocation, GetComponentRotation());
 
 #if ENABLE_DRAW_DEBUG
 	UDebugSubsystem* DebugSubSystem = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UDebugSubsystem>();

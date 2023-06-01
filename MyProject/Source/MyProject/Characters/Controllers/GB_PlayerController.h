@@ -22,6 +22,9 @@ protected:
 
 	virtual void SetupInputComponent() override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	TSubclassOf<class UPlayerHUDWidget> PlayerHUDWidgetClass;
+
 private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
@@ -45,8 +48,17 @@ private:
 
 	void InteractWithLadder();
 
-	void Fire();
+	void StartingFire();
+	void StopingFire();
+
+	void StartAiming();
+	void StopAiming();
+
+	void Reload();
 
 	TSoftObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
+
+	void CreateAndInitializeWidgets();
+	UPlayerHUDWidget* PlayerHUDWidget = nullptr;
 	
 };

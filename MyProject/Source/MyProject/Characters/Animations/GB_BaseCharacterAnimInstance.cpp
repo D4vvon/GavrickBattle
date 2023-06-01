@@ -6,6 +6,7 @@
 #include "../MovementComponents/GB_BaseCharacterMovementComp.h"
 #include "../CharacterComponents/CharacterAttributesComponent.h"
 #include "../CharacterComponents/CharacterEquipmentComponent.h"
+#include "../../Actor/Equipment/Weapons/RangeWeaponItem.h"
 
 void UGB_BaseCharacterAnimInstance::NativeBeginPlay()
 {
@@ -48,5 +49,12 @@ void UGB_BaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent();
 	CurrentEquippedItemType = CharacterEquipment->GetCurrentEquippedItemType();
 
+	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipment->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		ForegripSocketTransform = CurrentRangeWeapon->GetForegripTransform();
+	}
+
+	bIsAiming = CachedBaseCharacter->IsAiming();
 
 }

@@ -13,6 +13,7 @@
 #include "CharacterComponents/CharacterEquipmentComponent.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
+#include "../Actor/Equipment/Weapons/RangeWeaponItem.h"
 
 AGB_BaseCharacter::AGB_BaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGB_BaseCharacterMovementComp>(ACharacter::CharacterMovementComponentName))
@@ -62,8 +63,9 @@ void AGB_BaseCharacter::StopSprint()
 void AGB_BaseCharacter::Mantle(bool bForce /*= false*/)
 {
 
-	if (!(CanMantle() || bForce))
+	if (!(CanMantling() || bForce ))
 	{
+		//GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, FString::Printf(TEXT("CantMantle: %s; bForce: %s"),CanMantling(), bForce), true);
 		return;
 	}
 
@@ -117,6 +119,7 @@ void AGB_BaseCharacter::InteractWithLadder()
 {
 	if (GetBaseCharacterMovementComp()->IsOnLadder())
 	{
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, TEXT("Detach"), true);
 		GetBaseCharacterMovementComp()->DetachFromLadder();
 	}
 	else
@@ -172,6 +175,11 @@ void AGB_BaseCharacter::Tick(float DeltaTime)
 }
 
 const UCharacterEquipmentComponent* AGB_BaseCharacter::GetCharacterEquipmentComponent() const
+{
+	return CharacterEquipmentComponent;
+}
+
+UCharacterEquipmentComponent* AGB_BaseCharacter::GetCharacterEquipmentComponent_Mutable() const
 {
 	return CharacterEquipmentComponent;
 }
@@ -236,7 +244,7 @@ float AGB_BaseCharacter::GetCurrentStamina()
 	return CharacterAttributesComponent->GetCurrentStamina();
 }
 
-bool AGB_BaseCharacter::CanMantle() const
+bool AGB_BaseCharacter::CanMantling() const
 {
 	return GetBaseCharacterMovementComp()->IsOnLadder();
 }
@@ -250,6 +258,22 @@ void AGB_BaseCharacter::OnDeath()
 		EnableRagdoll();
 	}
 	GetCharacterMovement()->DisableMovement();
+}
+
+void AGB_BaseCharacter::OnStartAimingInternal()
+{
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(true);
+	}
+}
+
+void AGB_BaseCharacter::OnStopAimingInternal()
+{
+	if (OnAimingStateChanged.IsBound())
+	{
+		OnAimingStateChanged.Broadcast(false);
+	}
 }
 
 const FMantlingSettings& AGB_BaseCharacter::GetMantleSettings(float LedgeHeight) const
@@ -277,9 +301,83 @@ bool AGB_BaseCharacter::GetIsSprintRequest()
 	return bIsSprintRequested;
 }
 
-void AGB_BaseCharacter::Fire()
+void AGB_BaseCharacter::StartFire()
 {
-	CharacterEquipmentComponent->Fire();
+	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StartFire();
+	}
+}
+
+void AGB_BaseCharacter::StopFire()
+{
+	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopFire();
+	}
+}
+
+void AGB_BaseCharacter::StartAiming()
+{
+	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (!IsValid(CurrentRangeWeapon))
+	{
+		return;
+	}
+	bIsAiming = true;
+	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
+	CurrentRangeWeapon->StartAim();
+	OnStartAiming();
+}
+
+void AGB_BaseCharacter::StopAiming()
+{
+	if (!bIsAiming)
+	{
+		return;
+	}
+
+	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StopAim();
+	}
+	
+	bIsAiming = false;
+	CurrentAimingMovementSpeed = 0;
+	OnStopAiming();
+}
+
+bool AGB_BaseCharacter::IsAiming() const
+{
+	return bIsAiming;
+}
+
+float AGB_BaseCharacter::GetAimingMovementSpeed() const
+{
+	return CurrentAimingMovementSpeed;
+}
+
+void AGB_BaseCharacter::OnStartAiming_Implementation()
+{
+	OnStartAimingInternal();
+}
+
+void AGB_BaseCharacter::OnStopAiming_Implementation()
+{
+	OnStopAimingInternal();
+}
+
+void AGB_BaseCharacter::ReloadCurrebtRabgeWeapon()
+{
+	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
+	{
+		CharacterEquipmentComponent->ReloadCurrentWeapon();
+	}
 }
 
 void AGB_BaseCharacter::EnableRagdoll()

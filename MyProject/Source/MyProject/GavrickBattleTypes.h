@@ -13,11 +13,22 @@ const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
 const FName DebugCategoryRangeWeapon = FName("RangeWeapon");
 
 const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
-const FName SocketWeaponMuzzle = FName("SocketCharacterWeapon");
+const FName SocketWeaponMuzzle = FName("MuzzleSocket");
+const FName SocketWeaponForegrip = FName("ForegripSocket");
 
 UENUM(BlueprintType)
 enum class EEquipableItemType : uint8
 {
 	None,
-	Pistol
+	Pistol,
+	Rifle
+};
+
+UENUM(BlueprintType)
+enum class EAmmunitionType : uint8
+{
+	None,
+	Pistol,
+	Rifle,
+	MAX UMETA(Hidden)
 };

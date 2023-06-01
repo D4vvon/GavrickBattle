@@ -31,6 +31,8 @@ public:
 
 	bool IsOutOfStamina();
 
+	float GetHealthPercent() const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

@@ -3,12 +3,19 @@
 
 #include "GB_PlayerController.h"
 #include "../GB_BaseCharacter.h"
+#include "Blueprint/UserWidget.h"
+#include "../../UI/Widgets/ReticleWidget.h"
+#include "../../UI/Widgets/PlayerHUDWidget.h"
+#include "../../UI/Widgets/AmmoWidget.h"
+#include "../CharacterComponents/CharacterEquipmentComponent.h"
 
 void AGB_PlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
 
 	CachedBaseCharacter = Cast<AGB_BaseCharacter>(InPawn);
+
+	CreateAndInitializeWidgets();
 }
 
 void AGB_PlayerController::SetupInputComponent()
@@ -32,7 +39,13 @@ void AGB_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAxis("ClimbLadderUp", this, &AGB_PlayerController::ClimbLadderUp);
 
-	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Fire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Pressed, this, &AGB_PlayerController::StartingFire);
+	InputComponent->BindAction("Fire", EInputEvent::IE_Released, this, &AGB_PlayerController::StopingFire);
+
+	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AGB_PlayerController::StartAiming);
+	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AGB_PlayerController::StopAiming);
+
+	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Reload);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -119,7 +132,7 @@ void AGB_PlayerController::Mantle()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Mantle(false);
+		CachedBaseCharacter->Mantle(true);
 	}
 }
 
@@ -147,10 +160,71 @@ void AGB_PlayerController::InteractWithLadder()
 	}
 }
 
-void AGB_PlayerController::Fire()
+void AGB_PlayerController::StartingFire()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Fire();
+		CachedBaseCharacter->StartFire();
+	}
+}
+
+void AGB_PlayerController::StopingFire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopFire();
+	}
+}
+
+void AGB_PlayerController::StartAiming()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StartAiming();
+	}
+}
+
+void AGB_PlayerController::StopAiming()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->StopAiming();
+	}
+}
+
+void AGB_PlayerController::Reload()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ReloadCurrebtRabgeWeapon();
+	}
+}
+
+void AGB_PlayerController::CreateAndInitializeWidgets()
+{
+	if (!IsValid(PlayerHUDWidget))
+	{
+		PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass);
+		if (IsValid(PlayerHUDWidget))
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
+
+	if (IsValid(PlayerHUDWidget) && CachedBaseCharacter.IsValid())
+	{
+		PlayerHUDWidget->AddToViewport();
+		UReticleWidget* ReticleWidget = PlayerHUDWidget->GetReticleWidget();
+		if (IsValid(ReticleWidget))
+		{
+			CachedBaseCharacter->OnAimingStateChanged.AddUFunction(ReticleWidget, FName("OnAimingStateChange"));
+		}
+
+		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();
+		if (IsValid(AmmoWidget))
+		{
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+		}
 	}
 }

@@ -37,6 +37,8 @@ struct FMantlingSettings
 	float AnimationCorrectionZ = 200.0f;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+
 class AInteractiveActor;
 class UGB_BaseCharacterMovementComp;
 class UCharacterAttributesComponent;
@@ -76,11 +78,27 @@ public:
 	float GetCurrentStamina();
 	bool GetIsSprintRequest();
 
-	void Fire();
+	void StartFire();
+	void StopFire();
+
+	void StartAiming();
+	void StopAiming();
+	bool IsAiming() const;
+	float GetAimingMovementSpeed() const;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
+	void OnStartAiming();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
+	void OnStopAiming();
+
+	void ReloadCurrebtRabgeWeapon();
 
 	virtual void Tick(float DeltaTime) override;
 
 	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const;
+	UCharacterEquipmentComponent* GetCharacterEquipmentComponent_Mutable() const;
+	//const UCharacterAttributesComponent* GetCharacterAttributeConponent() const;
 
 	//virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -93,6 +111,8 @@ public:
 	virtual void Falling() override;
 	virtual void NotifyJumpApex() override;
 	virtual void Landed(const FHitResult& Hit) override;
+
+	FOnAimingStateChanged OnAimingStateChanged;
 
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
@@ -117,7 +137,7 @@ protected:
 
 	virtual bool CanSprint();
 
-	bool CanMantle() const;
+	bool CanMantling() const;
 
 	UGB_BaseCharacterMovementComp* GB_BaseCharacterMovementComp;
 
@@ -140,6 +160,9 @@ protected:
 
 	virtual void OnDeath();
 
+	virtual void OnStartAimingInternal();
+	virtual void OnStopAimingInternal();
+
 private:
 
 	const FMantlingSettings& GetMantleSettings(float LedgeHeight) const;
@@ -154,5 +177,8 @@ private:
 	void EnableRagdoll();
 
 	FVector CurrentFallApex;
+
+	bool bIsAiming = false;
+	float CurrentAimingMovementSpeed;
 
 };

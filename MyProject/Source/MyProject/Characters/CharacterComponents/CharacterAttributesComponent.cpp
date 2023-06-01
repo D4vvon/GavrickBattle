@@ -136,3 +136,8 @@ bool UCharacterAttributesComponent::IsOutOfStamina()
 	return Stamina < 20 ? true : false;
 }
 
+float UCharacterAttributesComponent::GetHealthPercent() const
+{
+	return Health / MaxHealth;
+}
+

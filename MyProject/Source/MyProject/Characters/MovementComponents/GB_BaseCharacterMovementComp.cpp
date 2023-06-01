@@ -28,9 +28,13 @@ float UGB_BaseCharacterMovementComp::GetMaxSpeed() const
 	{
 		Result = ClimbingOnLadderMaxSpeed;
 	}
-	else if (GetBaseCharacterOwner()->GetCurrentStamina() < 5.0f && !GetBaseCharacterOwner()->GetIsSprintRequest())
+	else if (GetBaseCharacterOwner()->GetCurrentStamina() <= 10.0f)
 	{
 		Result = OutOfStaminaSpeed;
+	}
+	else if (GetBaseCharacterOwner()->IsAiming())
+	{
+		 Result = GetBaseCharacterOwner()->GetAimingMovementSpeed();
 	}
 	return Result;
 }
@@ -216,7 +220,8 @@ void UGB_BaseCharacterMovementComp::DetachFromLadder()
 
 bool UGB_BaseCharacterMovementComp::IsOnLadder() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
+	//return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
+	return CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Ladder;
 }
 
 float UGB_BaseCharacterMovementComp::GetLadderSpeedRatio() const
