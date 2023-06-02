@@ -46,6 +46,9 @@ void AGB_PlayerController::SetupInputComponent()
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AGB_PlayerController::StopAiming);
 
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AGB_PlayerController::Reload);
+
+	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::NextItem);
+	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::PreviousItem);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -196,7 +199,23 @@ void AGB_PlayerController::Reload()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->ReloadCurrebtRabgeWeapon();
+		CachedBaseCharacter->ReloadCurrebtRangeWeapon();
+	}
+}
+
+void AGB_PlayerController::NextItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->NextItem();
+	}
+}
+
+void AGB_PlayerController::PreviousItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PreviousItem();
 	}
 }
 

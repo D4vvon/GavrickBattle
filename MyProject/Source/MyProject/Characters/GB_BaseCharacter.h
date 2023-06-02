@@ -92,7 +92,11 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
-	void ReloadCurrebtRabgeWeapon();
+	void ReloadCurrebtRangeWeapon();
+
+	void NextItem();
+
+	void PreviousItem();
 
 	virtual void Tick(float DeltaTime) override;
 

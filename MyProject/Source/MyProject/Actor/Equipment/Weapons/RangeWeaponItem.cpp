@@ -16,6 +16,8 @@ ARangeWeaponItem::ARangeWeaponItem()
 
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarrel>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
+
+	EquippedSocketName = SocketCharacterWeapon;
 }
 
 void ARangeWeaponItem::StartFire()
@@ -142,7 +144,7 @@ void ARangeWeaponItem::MakeShot()
 		StopFire();
 		if (Ammo == 0 && bAutoReload)
 		{
-			CharacterOwner->ReloadCurrebtRabgeWeapon();
+			CharacterOwner->ReloadCurrebtRangeWeapon();
 		}
 		return;
 	}

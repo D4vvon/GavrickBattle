@@ -15,8 +15,17 @@ class MYPROJECT_API AEquipableItem : public AActor
 public:
 	EEquipableItemType GetItemType() const;
 
+	FName GetUnEquippedSocketName() const;
+	FName GetEquippedSocketName() const;
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	EEquipableItemType ItemType = EEquipableItemType::None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
+	FName UnequippedSocketName = NAME_None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
+	FName EquippedSocketName = NAME_None;
 
 };

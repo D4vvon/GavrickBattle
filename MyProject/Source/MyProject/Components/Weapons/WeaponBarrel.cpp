@@ -8,11 +8,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/DamageEvents.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 void UWeaponBarrel::Shot(FVector ShotStart, FVector ShotDirection, AController* Controller)
 {
 	FVector MuzzleLocation = GetComponentLocation();
 	FVector ShotEnd = ShotStart + FiringRange * ShotDirection;
+	//DrawDebugSphere(GetWorld(), MuzzleLocation, 10.0f, 24, FColor::Red, false, 1.0f);
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlashFX, MuzzleLocation, GetComponentRotation());
 
@@ -38,6 +40,13 @@ void UWeaponBarrel::Shot(FVector ShotStart, FVector ShotDirection, AController* 
 			HitActor->TakeDamage(DamageAmount, FDamageEvent{}, Controller, GetOwner());
 		}
 	}
+
+	if (IsValid(TraceFX))
+	{
+		UNiagaraComponent* TraceFXComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), TraceFX, MuzzleLocation, GetComponentRotation());
+		TraceFXComponent->SetVectorParameter(FXParameterTraceEnd, ShotEnd);
+	}
+
 	if (bIsDebugEnabled)
 	{
 		DrawDebugLine(GetWorld(), MuzzleLocation, ShotEnd, FColor::Red, false, 1.0f, 0, 3.0f);

@@ -8,3 +8,13 @@ EEquipableItemType AEquipableItem::GetItemType() const
 {
 	return ItemType;
 }
+
+FName AEquipableItem::GetUnEquippedSocketName() const
+{
+	return UnequippedSocketName;
+}
+
+FName AEquipableItem::GetEquippedSocketName() const
+{
+	return EquippedSocketName;
+}

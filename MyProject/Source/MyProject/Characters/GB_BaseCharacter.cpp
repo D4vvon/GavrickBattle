@@ -372,12 +372,22 @@ void AGB_BaseCharacter::OnStopAiming_Implementation()
 	OnStopAimingInternal();
 }
 
-void AGB_BaseCharacter::ReloadCurrebtRabgeWeapon()
+void AGB_BaseCharacter::ReloadCurrebtRangeWeapon()
 {
 	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
 	{
 		CharacterEquipmentComponent->ReloadCurrentWeapon();
 	}
+}
+
+void AGB_BaseCharacter::NextItem()
+{
+	CharacterEquipmentComponent->EquipNextItem();
+}
+
+void AGB_BaseCharacter::PreviousItem()
+{
+	CharacterEquipmentComponent->EquipPreviousItem();
 }
 
 void AGB_BaseCharacter::EnableRagdoll()

@@ -8,6 +8,7 @@
 #include "CharacterEquipmentComponent.generated.h"
 
 typedef TArray<int32, TInlineAllocator<(uint32)EAmmunitionType::MAX>> TAmmunitionArray;
+typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::MAX>> TItemsArray;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChangedEvent, int32, int32);
 
@@ -26,18 +27,26 @@ public:
 
 	void ReloadCurrentWeapon();
 
+	void EquipItemInSlot(EEquipmentSlots Slot);
+
+	void EquipNextItem();
+	void EquipPreviousItem();
+
 protected:
 	
 	virtual void BeginPlay();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
-	TSubclassOf<ARangeWeaponItem> SideArmClass;
-
 	UFUNCTION()
 	void OnCurrentWeaponAmmoChanged(int32 Ammo);
 
+	EEquipmentSlots CurrentEquippedSlot;
+	AEquipableItem* CurrentEquippedItem;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TMap<EAmmunitionType, int32> MaxAmmunitionAmount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLoadout;
 
 private:
 	int32 GetAvailableAmmunitionForCurrentWeapon();
@@ -47,8 +56,15 @@ private:
 
 	void CreateLoadout();
 
+	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
+	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
+
 	ARangeWeaponItem* CurrentEquippedWeapon;
 	TWeakObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 
 	TAmmunitionArray AmmunitionArray;
+	TItemsArray ItemsArray;
+
+	FDelegateHandle OnCurrentWeaponAmmoChangedHandle;
+	FDelegateHandle OnCurrentWeaponReloadHandle;
 };

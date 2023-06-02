@@ -56,6 +56,9 @@ private:
 
 	void Reload();
 
+	void NextItem();
+	void PreviousItem();
+
 	TSoftObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 
 	void CreateAndInitializeWidgets();

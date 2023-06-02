@@ -16,6 +16,8 @@ const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForegrip = FName("ForegripSocket");
 
+const FName FXParameterTraceEnd = FName("TraceEnd");
+
 UENUM(BlueprintType)
 enum class EEquipableItemType : uint8
 {
@@ -30,5 +32,14 @@ enum class EAmmunitionType : uint8
 	None,
 	Pistol,
 	Rifle,
+	MAX UMETA(Hidden)
+};
+
+UENUM(BlueprintType)
+enum class EEquipmentSlots : uint8
+{
+	None,
+	SideArm,
+	PrimaryWeapon,
 	MAX UMETA(Hidden)
 };

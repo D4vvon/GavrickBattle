@@ -26,5 +26,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
 	UNiagaraSystem* MuzzleFlashFX;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
+	FVector MuzzleOffset = FVector(0.0f, 0.0f, 0.0f);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
+	UNiagaraSystem* TraceFX;
+
 		
 };
