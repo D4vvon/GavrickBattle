@@ -7,12 +7,16 @@
 #include "../../GavrickBattleTypes.h"
 #include "EquipableItem.generated.h"
 
+
+class UAnimMontage;
 UCLASS(Abstract, NotBlueprintable)
 class MYPROJECT_API AEquipableItem : public AActor
 {
 	GENERATED_BODY()
 	
 public:
+	UAnimMontage* GetCharacterEquipAnimMontage();
+
 	EEquipableItemType GetItemType() const;
 
 	FName GetUnEquippedSocketName() const;
@@ -28,4 +32,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	FName EquippedSocketName = NAME_None;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
+	UAnimMontage* CharacterEquipAnimMontage;
 };

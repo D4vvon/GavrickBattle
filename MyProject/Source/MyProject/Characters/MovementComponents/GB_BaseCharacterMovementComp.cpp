@@ -34,7 +34,7 @@ float UGB_BaseCharacterMovementComp::GetMaxSpeed() const
 	}
 	else if (GetBaseCharacterOwner()->IsAiming())
 	{
-		 Result = GetBaseCharacterOwner()->GetAimingMovementSpeed();
+		Result = GetBaseCharacterOwner()->GetAimingMovementSpeed();
 	}
 	return Result;
 }

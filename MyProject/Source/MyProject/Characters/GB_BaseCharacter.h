@@ -78,6 +78,7 @@ public:
 	float GetCurrentStamina();
 	bool GetIsSprintRequest();
 
+	bool CanFire();
 	void StartFire();
 	void StopFire();
 
@@ -97,6 +98,8 @@ public:
 	void NextItem();
 
 	void PreviousItem();
+
+	void EquipPrimaryItem();
 
 	virtual void Tick(float DeltaTime) override;
 

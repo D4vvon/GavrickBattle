@@ -12,6 +12,7 @@ typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChangedEvent, int32, int32);
 
+class AThrowableItem;
 class ARangeWeaponItem;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MYPROJECT_API UCharacterEquipmentComponent : public UActorComponent
@@ -29,8 +30,17 @@ public:
 
 	void EquipItemInSlot(EEquipmentSlots Slot);
 
+	void AttachCurrentItemToEquippedSocket();
+
+	void UnequipCurrentItem();
+
 	void EquipNextItem();
 	void EquipPreviousItem();
+
+	bool IsEquipping();
+
+	void EquipCurrentThrowableItem();
+	void LaunchCurrentThrowableItem();
 
 protected:
 	
@@ -48,13 +58,21 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLoadout;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TSet<EEquipmentSlots> IgnoreSlotsWhileSwitshing;
+
 private:
 	int32 GetAvailableAmmunitionForCurrentWeapon();
+
+	bool bIsEquipping = false;
+	FTimerHandle EquipTimer;
 
 	UFUNCTION()
 	void OnWeaponReloadComplete();
 
 	void CreateLoadout();
+
+	void EquipAnimationFinished();
 
 	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
 	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
@@ -67,4 +85,7 @@ private:
 
 	FDelegateHandle OnCurrentWeaponAmmoChangedHandle;
 	FDelegateHandle OnCurrentWeaponReloadHandle;
+
+	EEquipmentSlots PreviousEquippedSlot;
+	AThrowableItem* CurrentThrowableItem;
 };

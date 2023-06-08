@@ -4,6 +4,11 @@
 #include "EquipableItem.h"
 
 
+UAnimMontage* AEquipableItem::GetCharacterEquipAnimMontage()
+{
+	return CharacterEquipAnimMontage;
+}
+
 EEquipableItemType AEquipableItem::GetItemType() const
 {
 	return ItemType;

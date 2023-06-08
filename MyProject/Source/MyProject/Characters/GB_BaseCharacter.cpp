@@ -301,8 +301,33 @@ bool AGB_BaseCharacter::GetIsSprintRequest()
 	return bIsSprintRequested;
 }
 
+bool AGB_BaseCharacter::CanFire()
+{
+	if (CharacterEquipmentComponent->IsEquipping())
+	{
+		return false;
+	}
+	else if (GetBaseCharacterMovementComp()->IsSprinting())
+	{
+		return false;
+	}
+	else if (GetBaseCharacterMovementComp()->IsMantling())
+	{
+		return false;
+	}
+	else
+	{
+		 return true;
+	}
+
+}
+
 void AGB_BaseCharacter::StartFire()
 {
+	if (!CanFire())
+	{
+		return;
+	}
 	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
 
 	if (IsValid(CurrentRangeWeapon))
@@ -388,6 +413,11 @@ void AGB_BaseCharacter::NextItem()
 void AGB_BaseCharacter::PreviousItem()
 {
 	CharacterEquipmentComponent->EquipPreviousItem();
+}
+
+void AGB_BaseCharacter::EquipPrimaryItem()
+{
+	CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::PrimaryItemSlot);
 }
 
 void AGB_BaseCharacter::EnableRagdoll()

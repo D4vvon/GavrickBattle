@@ -32,5 +32,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
 	UNiagaraSystem* TraceFX;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell attributes")
+	TSubclassOf<class UDamageType> DamgeTypeClass;
+
 		
 };

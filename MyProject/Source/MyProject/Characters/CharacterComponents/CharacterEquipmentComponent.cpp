@@ -5,6 +5,8 @@
 #include "../GB_BaseCharacter.h"
 #include "../../Actor/Equipment/Weapons/RangeWeaponItem.h"
 #include "../../GavrickBattleTypes.h"
+#include "Animation/AnimMontage.h"
+#include "../../Actor/Equipment/Throwables/ThrowableItem.h"
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
 {
@@ -35,28 +37,34 @@ void UCharacterEquipmentComponent::ReloadCurrentWeapon()
 
 void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 {
-	if (IsValid(CurrentEquippedItem))
+	if (!IsValid(ItemsArray[(uint32)Slot]))
 	{
-		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetUnEquippedSocketName());
+		return;
 	}
 
-	if (IsValid(CurrentEquippedWeapon))
+	if (bIsEquipping)
 	{
-		CurrentEquippedWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHandle);
-		CurrentEquippedWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadHandle);
+		return;
 	}
-
+	UnequipCurrentItem();
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
 	CurrentEquippedWeapon = Cast<ARangeWeaponItem>(CurrentEquippedItem);
+	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
 
 	if (IsValid(CurrentEquippedItem))
 	{
-		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetEquippedSocketName());
+		UAnimMontage* EquipMontage = CurrentEquippedItem->GetCharacterEquipAnimMontage();
+		if (IsValid(EquipMontage))
+		{
+			bIsEquipping = true;
+			float EquipDuration = CachedBaseCharacter->PlayAnimMontage(EquipMontage);
+			GetWorld()->GetTimerManager().SetTimer(EquipTimer, this, &UCharacterEquipmentComponent::EquipAnimationFinished, EquipDuration, false);
+		}
+		else
+		{
+			AttachCurrentItemToEquippedSocket();
+		}
 		CurrentEquippedSlot = Slot;
-	}
-	else
-	{
-		CurrentEquippedSlot = EEquipmentSlots::None;
 	}
 
 	if (IsValid(CurrentEquippedWeapon))
@@ -67,12 +75,38 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	}
 }
 
+void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()
+{
+	CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetEquippedSocketName());
+}
+
+void UCharacterEquipmentComponent::UnequipCurrentItem()
+{
+	if (IsValid(CurrentEquippedItem))
+	{
+		CurrentEquippedItem->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, CurrentEquippedItem->GetUnEquippedSocketName());
+	}
+
+	if (IsValid(CurrentEquippedWeapon))
+	{
+		CurrentEquippedWeapon->StopFire();
+		CurrentEquippedWeapon->EndReload(false);
+		CurrentEquippedWeapon->OnAmmoChanged.Remove(OnCurrentWeaponAmmoChangedHandle);
+		CurrentEquippedWeapon->OnReloadComplete.Remove(OnCurrentWeaponReloadHandle);
+	}
+
+	PreviousEquippedSlot = CurrentEquippedSlot;
+	CurrentEquippedSlot = EEquipmentSlots::None;
+}
+
 void UCharacterEquipmentComponent::EquipNextItem()
 {
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 NextSlotIndex = NextItemsArraySlotIndex(CurrentSlotIndex);
 
-	while (CurrentSlotIndex != NextSlotIndex && !IsValid(ItemsArray[NextSlotIndex]))
+	while (CurrentSlotIndex != NextSlotIndex 
+					&& IgnoreSlotsWhileSwitshing.Contains((EEquipmentSlots)NextSlotIndex)
+					&& !IsValid(ItemsArray[NextSlotIndex]))
 	{
 		NextSlotIndex = NextItemsArraySlotIndex(NextSlotIndex);
 	}
@@ -87,13 +121,31 @@ void UCharacterEquipmentComponent::EquipPreviousItem()
 	uint32 CurrentSlotIndex = (uint32)CurrentEquippedSlot;
 	uint32 PreviousSlotIndex = PreviousItemsArraySlotIndex(CurrentSlotIndex);
 
-	while (CurrentSlotIndex != PreviousSlotIndex && !IsValid(ItemsArray[PreviousSlotIndex]))
+	while (CurrentSlotIndex != PreviousSlotIndex 
+					&& IgnoreSlotsWhileSwitshing.Contains((EEquipmentSlots)PreviousSlotIndex)
+					&& !IsValid(ItemsArray[PreviousSlotIndex]))
 	{
 		PreviousSlotIndex = PreviousItemsArraySlotIndex(PreviousSlotIndex);
 	}
 	if (CurrentSlotIndex != PreviousSlotIndex)
 	{
 		EquipItemInSlot((EEquipmentSlots)PreviousSlotIndex);
+	}
+}
+
+bool UCharacterEquipmentComponent::IsEquipping()
+{
+	return bIsEquipping;
+}
+
+void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
+{
+	if (CurrentThrowableItem)
+	{
+		CurrentThrowableItem->Throw();
+
+		bIsEquipping = false;
+		EquipItemInSlot(PreviousEquippedSlot);
 	}
 }
 
@@ -152,6 +204,12 @@ void UCharacterEquipmentComponent::CreateLoadout()
 		Item->SetOwner(CachedBaseCharacter.Get());
 		ItemsArray[(uint32)ItemPair.Key] = Item;
 	}
+}
+
+void UCharacterEquipmentComponent::EquipAnimationFinished()
+{
+	bIsEquipping = false;
+	AttachCurrentItemToEquippedSocket();
 }
 
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)

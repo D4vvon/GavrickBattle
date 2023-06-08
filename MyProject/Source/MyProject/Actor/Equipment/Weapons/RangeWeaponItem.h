@@ -113,6 +113,7 @@ private:
 	float GetShotTimerInterval();
 
 	float PlayeAnimMontage(UAnimMontage* AnimMontage);
+	void StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime = 0.0f);
 
 	FTimerHandle ShotTimer;
 	FTimerHandle ReloadTimer;

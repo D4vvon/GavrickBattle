@@ -49,6 +49,8 @@ void AGB_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::PreviousItem);
+
+	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::EquipPrimaryItem);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -216,6 +218,14 @@ void AGB_PlayerController::PreviousItem()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->PreviousItem();
+	}
+}
+
+void AGB_PlayerController::EquipPrimaryItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->EquipPrimaryItem();
 	}
 }
 

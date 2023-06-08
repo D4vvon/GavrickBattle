@@ -59,6 +59,8 @@ private:
 	void NextItem();
 	void PreviousItem();
 
+	void EquipPrimaryItem();
+
 	TSoftObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 
 	void CreateAndInitializeWidgets();

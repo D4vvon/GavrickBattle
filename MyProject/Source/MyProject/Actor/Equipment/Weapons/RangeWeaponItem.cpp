@@ -107,6 +107,12 @@ void ARangeWeaponItem::EndReload(bool bIsSuccess)
 	{
 		return;
 	}
+	if (!bIsSuccess)
+	{
+		AGB_BaseCharacter* CharacterOwner = StaticCast<AGB_BaseCharacter*>(GetOwner());
+		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		StopAnimMontage(WeaponReloadMontage, false);
+	}
 
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
 
@@ -192,5 +198,19 @@ float ARangeWeaponItem::GetShotTimerInterval()
 float ARangeWeaponItem::PlayeAnimMontage(UAnimMontage* AnimMontage)
 {
 	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
-	return WeaponAnimInstance->Montage_Play(AnimMontage);
+	float Result = 0.0f;
+	if (IsValid(WeaponAnimInstance))
+	{
+		Result = WeaponAnimInstance->Montage_Play(AnimMontage);
+	}
+	return Result;
+}
+
+void ARangeWeaponItem::StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime /*= 0.0f*/)
+{
+	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
+	if (IsValid(WeaponAnimInstance))
+	{
+		WeaponAnimInstance->Montage_Stop(BlendOutTime, AnimMontage);	
+	}
 }
