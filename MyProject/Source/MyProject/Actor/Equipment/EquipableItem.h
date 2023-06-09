@@ -7,6 +7,7 @@
 #include "../../GavrickBattleTypes.h"
 #include "EquipableItem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentStateChange, bool, bIsEquipped);
 
 class UAnimMontage;
 UCLASS(Abstract, NotBlueprintable)
@@ -22,6 +23,9 @@ public:
 	FName GetUnEquippedSocketName() const;
 	FName GetEquippedSocketName() const;
 
+	virtual void Equip();
+	virtual void UnEquip();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	EEquipableItemType ItemType = EEquipableItemType::None;
@@ -34,4 +38,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
 	UAnimMontage* CharacterEquipAnimMontage;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnEquipmentStateChange OnEquipmentStateChange;
 };

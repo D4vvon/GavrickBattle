@@ -34,8 +34,8 @@ public:
 
 	void UnequipCurrentItem();
 
-	void EquipNextItem();
-	void EquipPreviousItem();
+	void EquipPrimaryWeaponItem();
+	void EquipSidearmWeaponItem();
 
 	bool IsEquipping();
 

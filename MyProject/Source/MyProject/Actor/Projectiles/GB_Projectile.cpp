@@ -22,6 +22,11 @@ void AGB_Projectile::LaunchProjectile(FVector Direction)
 {
 	ProjectileMovementComp->Velocity = Direction * ProjectileMovementComp->InitialSpeed;
 	CollisionComponent->IgnoreActorWhenMoving(GetOwner(), true);
+	OnProjectileLaunched();
 }
 
+void AGB_Projectile::OnProjectileLaunched()
+{
+
+}
 

@@ -29,10 +29,9 @@ void AGB_BaseCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AGB_BaseCharacter::OnDeath);
+
+	CharacterEquipmentComponent->EquipSidearmWeaponItem();
 }
-
-// Sets default values
-
 
 void AGB_BaseCharacter::ChangeCrouchState()
 {
@@ -407,12 +406,12 @@ void AGB_BaseCharacter::ReloadCurrebtRangeWeapon()
 
 void AGB_BaseCharacter::NextItem()
 {
-	CharacterEquipmentComponent->EquipNextItem();
+	CharacterEquipmentComponent->EquipPrimaryWeaponItem();
 }
 
 void AGB_BaseCharacter::PreviousItem()
 {
-	CharacterEquipmentComponent->EquipPreviousItem();
+	CharacterEquipmentComponent->EquipSidearmWeaponItem();
 }
 
 void AGB_BaseCharacter::EquipPrimaryItem()

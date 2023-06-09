@@ -23,3 +23,19 @@ FName AEquipableItem::GetEquippedSocketName() const
 {
 	return EquippedSocketName;
 }
+
+void AEquipableItem::Equip()
+{
+	if (OnEquipmentStateChange.IsBound())
+	{
+		OnEquipmentStateChange.Broadcast(true);
+	}
+}
+
+void AEquipableItem::UnEquip()
+{
+	if (OnEquipmentStateChange.IsBound())
+	{
+		OnEquipmentStateChange.Broadcast(false);
+	}
+}

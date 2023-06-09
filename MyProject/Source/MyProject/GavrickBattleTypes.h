@@ -15,6 +15,7 @@ const FName DebugCategoryRangeWeapon = FName("RangeWeapon");
 const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForegrip = FName("ForegripSocket");
+const FName SocketCharacterThrowable = FName("ThrowableSocket");
 
 const FName FXParameterTraceEnd = FName("TraceEnd");
 
