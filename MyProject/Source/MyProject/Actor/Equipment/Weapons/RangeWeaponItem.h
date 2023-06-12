@@ -51,6 +51,8 @@ public:
 
 	FOnReloadComplete OnReloadComplete;
 
+	virtual EReticleType GetReticleType() const;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -99,6 +101,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animations | Character")
 	UAnimMontage* CharacterReloadMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reticle")
+	EReticleType AimReticleType = EReticleType::None;
+
 private:
 	int32 Ammo = 0;
 
@@ -108,15 +113,17 @@ private:
 
 	void MakeShot();
 
-	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation);
-
 	float GetShotTimerInterval();
 
-	float PlayeAnimMontage(UAnimMontage* AnimMontage);
+	float PlayAnimMontage(UAnimMontage* AnimMontage);
 	void StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime = 0.0f);
 
 	FTimerHandle ShotTimer;
 	FTimerHandle ReloadTimer;
 
 	bool bIsAiming = false;
+
+	bool bIsFiring = false;
+
+	void OnShotTimerElapsed();
 };

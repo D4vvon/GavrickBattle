@@ -7,13 +7,14 @@
 #include "../../GavrickBattleTypes.h"
 #include "Animation/AnimMontage.h"
 #include "../../Actor/Equipment/Throwables/ThrowableItem.h"
+#include "../../Actor/Equipment/Weapons/MeleeWeaponItem.h"
 
 EEquipableItemType UCharacterEquipmentComponent::GetCurrentEquippedItemType() const
 {
 	EEquipableItemType Result = EEquipableItemType::None;
-	if (IsValid(CurrentEquippedWeapon))
+	if (IsValid(CurrentEquippedItem))
 	{
-		Result = CurrentEquippedWeapon->GetItemType();
+		Result = CurrentEquippedItem->GetItemType();
 	}
 	return Result;
 }
@@ -45,6 +46,7 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
 	CurrentEquippedWeapon = Cast<ARangeWeaponItem>(CurrentEquippedItem);
 	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
+	CurrentMeleeWeapon = Cast<AMeleeWeaponItem>(CurrentEquippedItem);
 
 	if (IsValid(CurrentEquippedItem))
 	{
@@ -68,6 +70,11 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 		OnCurrentWeaponAmmoChangedHandle = CurrentEquippedWeapon->OnAmmoChanged.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
 		OnCurrentWeaponReloadHandle = CurrentEquippedWeapon->OnReloadComplete.AddUFunction(this, FName("OnWeaponReloadComplete"));
 		OnCurrentWeaponAmmoChanged(CurrentEquippedWeapon->GetAmmo());
+	}
+
+	if (OnEquippedItemChanged.IsBound())
+	{
+		OnEquippedItemChanged.Broadcast(CurrentEquippedItem);
 	}
 }
 
@@ -136,9 +143,19 @@ void UCharacterEquipmentComponent::EquipSidearmWeaponItem()
 	EquipItemInSlot(EEquipmentSlots::SideArm);
 }
 
+void UCharacterEquipmentComponent::EquipMeleeWeapon()
+{
+	EquipItemInSlot(EEquipmentSlots::MeleeWeapon);
+}
+
 bool UCharacterEquipmentComponent::IsEquipping()
 {
 	return bIsEquipping;
+}
+
+AMeleeWeaponItem* UCharacterEquipmentComponent::GetCurrentMeleeWeapon() const
+{
+	return CurrentMeleeWeapon;
 }
 
 void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()

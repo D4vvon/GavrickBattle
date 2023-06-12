@@ -2,7 +2,22 @@
 
 
 #include "EquipableItem.h"
+#include "../../Characters/GB_BaseCharacter.h"
+#include "GameFramework/Actor.h"
 
+
+void AEquipableItem::SetOwner(AActor* NewOwner)
+{
+	Super::SetOwner(NewOwner);
+	if (IsValid(NewOwner))
+	{
+		CachedCharacterOwner = StaticCast<AGB_BaseCharacter*>(GetOwner());
+	}
+	else
+	{
+		CachedCharacterOwner = nullptr;
+	}
+}
 
 UAnimMontage* AEquipableItem::GetCharacterEquipAnimMontage()
 {
@@ -38,4 +53,14 @@ void AEquipableItem::UnEquip()
 	{
 		OnEquipmentStateChange.Broadcast(false);
 	}
+}
+
+EReticleType AEquipableItem::GetReticleType() const
+{
+	return ReticleType;
+}
+
+AGB_BaseCharacter* AEquipableItem::GetCharacterOwner() const
+{
+	return CachedCharacterOwner.IsValid() ? CachedCharacterOwner.Get() : nullptr;
 }

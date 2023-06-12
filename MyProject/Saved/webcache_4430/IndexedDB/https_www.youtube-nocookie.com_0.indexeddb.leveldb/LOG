@@ -1,0 +1,6 @@
+2023/06/12-19:58:24.732 61a4 Creating DB D:/GavrickBattle/MyProject/Saved/webcache_4430\IndexedDB\https_www.youtube-nocookie.com_0.indexeddb.leveldb since it was missing.
+2023/06/12-19:58:24.736 61a4 Reusing MANIFEST D:/GavrickBattle/MyProject/Saved/webcache_4430\IndexedDB\https_www.youtube-nocookie.com_0.indexeddb.leveldb/MANIFEST-000001
+2023/06/12-19:59:20.733 61a4 Level-0 table #5: started
+2023/06/12-19:59:20.736 61a4 Level-0 table #5: 1167 bytes OK
+2023/06/12-19:59:20.737 61a4 Delete type=0 #3
+2023/06/12-19:59:20.738 61a4 Manual compaction at level-0 from (begin) .. (end); will stop at (end)

@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "../GavrickBattleTypes.h"
+#include "AIModule/Classes/GenericTeamAgentInterface.h"
 #include "GB_BaseCharacter.generated.h"
 
 USTRUCT(BlueprintType)
@@ -45,7 +47,7 @@ class UCharacterAttributesComponent;
 class UCharacterEquipmentComponent;
 
 UCLASS(Abstract, NotBlueprintable)
-class MYPROJECT_API AGB_BaseCharacter : public ACharacter
+class MYPROJECT_API AGB_BaseCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -53,6 +55,8 @@ public:
 	AGB_BaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
+
+	virtual void PossessedBy(AController* NewController) override;
 
 	virtual void MoveForward(float Value) {};
 	virtual void MoveRight(float Value) {};
@@ -68,6 +72,7 @@ public:
 	virtual void SwimRight(float Value) {};
 	virtual void SwimUp(float Value) {};
 
+	UFUNCTION(BlueprintCallable)
 	virtual void Mantle(bool bForce = false);
 	virtual bool CanJumpInternal_Implementation() const override;
 
@@ -96,10 +101,13 @@ public:
 	void ReloadCurrebtRangeWeapon();
 
 	void NextItem();
-
 	void PreviousItem();
+	void MeleeItem();
 
 	void EquipPrimaryItem();
+
+	void PrimaryMeleeAttack();
+	void SecondaryMeleeAttack();
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -120,6 +128,10 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 
 	FOnAimingStateChanged OnAimingStateChanged;
+
+	/* IGenericTea,AgentInterface*/
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	/* IGenericTea,AgentInterface*/
 
 protected:
 	UFUNCTION(BlueprintNativeEvent, Category = "Character | Movement")
@@ -169,6 +181,9 @@ protected:
 
 	virtual void OnStartAimingInternal();
 	virtual void OnStopAimingInternal();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
+	ETeams Team = ETeams::Enemy;
 
 private:
 

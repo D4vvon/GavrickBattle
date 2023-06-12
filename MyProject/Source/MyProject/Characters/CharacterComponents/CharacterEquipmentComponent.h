@@ -11,9 +11,11 @@ typedef TArray<int32, TInlineAllocator<(uint32)EAmmunitionType::MAX>> TAmmunitio
 typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::MAX>> TItemsArray;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnCurrentWeaponAmmoChangedEvent, int32, int32);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnEquippedItemChanged, const AEquipableItem*);
 
 class AThrowableItem;
 class ARangeWeaponItem;
+class AMeleeWeaponItem;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MYPROJECT_API UCharacterEquipmentComponent : public UActorComponent
 {
@@ -24,7 +26,10 @@ public:
 
 	ARangeWeaponItem* GetCurrentRangeWeapon() const;
 
+	AMeleeWeaponItem* GetCurrentMeleeWeapon() const;
+
 	FOnCurrentWeaponAmmoChangedEvent OnCurrentWeaponAmmoChangedEvent;
+	FOnEquippedItemChanged OnEquippedItemChanged;
 
 	void ReloadCurrentWeapon();
 
@@ -36,6 +41,7 @@ public:
 
 	void EquipPrimaryWeaponItem();
 	void EquipSidearmWeaponItem();
+	void EquipMeleeWeapon();
 
 	bool IsEquipping();
 
@@ -88,4 +94,6 @@ private:
 
 	EEquipmentSlots PreviousEquippedSlot;
 	AThrowableItem* CurrentThrowableItem;
+
+	AMeleeWeaponItem* CurrentMeleeWeapon;
 };

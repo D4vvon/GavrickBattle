@@ -58,8 +58,17 @@ private:
 
 	void NextItem();
 	void PreviousItem();
+	void MeleeItem();
 
 	void EquipPrimaryItem();
+
+	void PrimaryMeleeAttack();
+	void SecondaryMeleeAttack();
+
+	float BaseTurnRate = 20.0f;
+	float BaseLookUpRate = 20.0f;
+	float AimTurnRate = 1.0f;
+	float AimLookUpRate = 1.0f;
 
 	TSoftObjectPtr<class AGB_BaseCharacter> CachedBaseCharacter;
 

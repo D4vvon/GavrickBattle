@@ -9,6 +9,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentStateChange, bool, bIsEquipped);
 
+class AGB_BaseCharacter;
 class UAnimMontage;
 UCLASS(Abstract, NotBlueprintable)
 class MYPROJECT_API AEquipableItem : public AActor
@@ -16,6 +17,8 @@ class MYPROJECT_API AEquipableItem : public AActor
 	GENERATED_BODY()
 	
 public:
+	virtual void SetOwner( AActor* NewOwner ) override;
+
 	UAnimMontage* GetCharacterEquipAnimMontage();
 
 	EEquipableItemType GetItemType() const;
@@ -25,6 +28,8 @@ public:
 
 	virtual void Equip();
 	virtual void UnEquip();
+
+	virtual EReticleType GetReticleType() const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "EquipableItem")
@@ -41,4 +46,12 @@ protected:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnEquipmentStateChange OnEquipmentStateChange;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Reticle")
+	EReticleType ReticleType = EReticleType::None;
+
+	AGB_BaseCharacter* GetCharacterOwner() const;
+
+private:
+	TWeakObjectPtr<AGB_BaseCharacter> CachedCharacterOwner;
 };

@@ -49,8 +49,12 @@ void AGB_PlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::PreviousItem);
+	InputComponent->BindAction("ThirdItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::MeleeItem);
 
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AGB_PlayerController::EquipPrimaryItem);
+
+	InputComponent->BindAction("PrimaryMeleeAttack", EInputEvent::IE_Pressed, this, &AGB_PlayerController::PrimaryMeleeAttack);
+	InputComponent->BindAction("SecondaryMeleeAttack", EInputEvent::IE_Pressed, this, &AGB_PlayerController::SecondaryMeleeAttack);
 }
 
 void AGB_PlayerController::MoveForward(float Value)
@@ -73,7 +77,7 @@ void AGB_PlayerController::Turn(float Value)
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->Turn(Value);
+		CachedBaseCharacter->Turn(Value * AimTurnRate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 	}
 }
 
@@ -81,7 +85,7 @@ void AGB_PlayerController::LookUp(float Value)
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->LookUp(Value);
+		CachedBaseCharacter->LookUp(Value * AimLookUpRate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 	}
 }
 
@@ -186,6 +190,7 @@ void AGB_PlayerController::StartAiming()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StartAiming();
+		AimTurnRate = 0.5f;
 	}
 }
 
@@ -194,6 +199,7 @@ void AGB_PlayerController::StopAiming()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopAiming();
+		AimTurnRate = 1.0f;
 	}
 }
 
@@ -221,11 +227,35 @@ void AGB_PlayerController::PreviousItem()
 	}
 }
 
+void AGB_PlayerController::MeleeItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->MeleeItem();
+	}
+}
+
 void AGB_PlayerController::EquipPrimaryItem()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->EquipPrimaryItem();
+	}
+}
+
+void AGB_PlayerController::PrimaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PrimaryMeleeAttack();
+	}
+}
+
+void AGB_PlayerController::SecondaryMeleeAttack()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SecondaryMeleeAttack();
 	}
 }
 
@@ -247,6 +277,8 @@ void AGB_PlayerController::CreateAndInitializeWidgets()
 		if (IsValid(ReticleWidget))
 		{
 			CachedBaseCharacter->OnAimingStateChanged.AddUFunction(ReticleWidget, FName("OnAimingStateChange"));
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnEquippedItemChanged.AddUFunction(ReticleWidget, FName("OnEquippedItemChanged"));
 		}
 
 		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();

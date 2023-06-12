@@ -17,22 +17,25 @@ ARangeWeaponItem::ARangeWeaponItem()
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarrel>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
 
+	ReticleType = EReticleType::Pistol;
+
 	EquippedSocketName = SocketCharacterWeapon;
 }
 
 void ARangeWeaponItem::StartFire()
 {
-	MakeShot();
-	if (WeaponFireMode  == EWeaponFireMode::FullAuto)
+	if (GetWorld()->GetTimerManager().IsTimerActive(ShotTimer))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
-		GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeaponItem::MakeShot, GetShotTimerInterval(), true);
+		return;
 	}
+
+	bIsFiring = true;
+	MakeShot();
 }
 
 void ARangeWeaponItem::StopFire()
 {
-	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+	bIsFiring = false;
 }
 
 void ARangeWeaponItem::StartAim()
@@ -86,13 +89,17 @@ bool ARangeWeaponItem::CanShoot()
 
 void ARangeWeaponItem::StartReload()
 {
-	AGB_BaseCharacter* CharacterOwner = StaticCast<AGB_BaseCharacter*>(GetOwner());
+	AGB_BaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 
 	bIsReloading = true;
 	if (IsValid(CharacterReloadMontage))
 	{
 		float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
-		PlayeAnimMontage(WeaponReloadMontage);
+		PlayAnimMontage(WeaponReloadMontage);
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this]() { EndReload(true); }, MontageDuration, false);
 	}
 	else
@@ -107,10 +114,15 @@ void ARangeWeaponItem::EndReload(bool bIsSuccess)
 	{
 		return;
 	}
+
+	AGB_BaseCharacter* CharacterOwner = GetCharacterOwner();
+
 	if (!bIsSuccess)
 	{
-		AGB_BaseCharacter* CharacterOwner = StaticCast<AGB_BaseCharacter*>(GetOwner());
-		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		if (IsValid(CharacterOwner))
+		{
+			CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+		}
 		StopAnimMontage(WeaponReloadMontage, false);
 	}
 
@@ -128,6 +140,11 @@ EAmmunitionType ARangeWeaponItem::GetAmmoType() const
 	return AmmoType;
 }
 
+EReticleType ARangeWeaponItem::GetReticleType() const
+{
+	return bIsAiming ? AimReticleType : Super::GetReticleType();
+}
+
 void ARangeWeaponItem::BeginPlay()
 {
 	Super::BeginPlay();
@@ -142,7 +159,11 @@ float ARangeWeaponItem::GetCurrentBulletSpread()
 
 void ARangeWeaponItem::MakeShot()
 {
-	AGB_BaseCharacter* CharacterOwner = StaticCast<AGB_BaseCharacter*>(GetOwner());
+	AGB_BaseCharacter* CharacterOwner = GetCharacterOwner();
+	if (!IsValid(CharacterOwner))
+	{
+		return;
+	}
 	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
 
 	if (!CanShoot())
@@ -156,7 +177,7 @@ void ARangeWeaponItem::MakeShot()
 	}
 
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
-	PlayeAnimMontage(WeaponFireMontage);
+	PlayAnimMontage(WeaponFireMontage);
 
 	if (!IsValid(Controller))
 	{
@@ -168,26 +189,14 @@ void ARangeWeaponItem::MakeShot()
 	FRotator PlayerViewRotation;
 	Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
 
+	FVector ShotStart = GetActorLocation();
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
-	ViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.0f, GetCurrentBulletSpread()), PlayerViewRotation);
-	//ViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.0f, FMath::DegreesToRadians(SpreadAngle)), PlayerViewRotation);
 
-	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, Controller);
+	WeaponBarell->Shot(PlayerViewPoint, ViewDirection, GetCurrentBulletSpread());
+	//WeaponBarell->Shot(ShotStart, ViewDirection);
 	SetAmmo(Ammo - 1);
-	//WeaponBarell->Shot(WeaponMesh->GetComponentLocation(), ViewDirection, Controller);
-}
 
-FVector ARangeWeaponItem::GetBulletSpreadOffset(float Angle, FRotator ShotRotation)
-{
-	float SpreadSize = FMath::Tan(Angle);
-	float RotationAngle = FMath::RandRange(0.0f, 2 * PI);
-
-	float SpreadY = FMath::Cos(RotationAngle);
-	float SpreadZ = FMath::Sin(RotationAngle);
-
-	FVector Result = (ShotRotation.RotateVector(FVector::UpVector) * SpreadZ + ShotRotation.RotateVector(FVector::RightVector) * SpreadY) * SpreadSize;
-
-	return Result;
+	GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeaponItem::OnShotTimerElapsed, GetShotTimerInterval(), false);
 }
 
 float ARangeWeaponItem::GetShotTimerInterval()
@@ -195,7 +204,7 @@ float ARangeWeaponItem::GetShotTimerInterval()
 	return 60.0f / RateOfFire;
 }
 
-float ARangeWeaponItem::PlayeAnimMontage(UAnimMontage* AnimMontage)
+float ARangeWeaponItem::PlayAnimMontage(UAnimMontage* AnimMontage)
 {
 	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
 	float Result = 0.0f;
@@ -212,5 +221,29 @@ void ARangeWeaponItem::StopAnimMontage(UAnimMontage* AnimMontage, float BlendOut
 	if (IsValid(WeaponAnimInstance))
 	{
 		WeaponAnimInstance->Montage_Stop(BlendOutTime, AnimMontage);	
+	}
+}
+
+void ARangeWeaponItem::OnShotTimerElapsed()
+{
+	if (!bIsFiring)
+	{
+		return;
+	}
+
+	switch (WeaponFireMode)
+	{
+	case EWeaponFireMode::Single:
+	{
+		StopFire();
+		break;
+	}		
+	case EWeaponFireMode::FullAuto:
+	{
+		MakeShot();
+	}
+
+	default:
+		break;
 	}
 }

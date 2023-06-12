@@ -14,6 +14,8 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "../Actor/Equipment/Weapons/RangeWeaponItem.h"
+#include "../Actor/Equipment/Weapons/MeleeWeaponItem.h"
+#include "AIController.h"
 
 AGB_BaseCharacter::AGB_BaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UGB_BaseCharacterMovementComp>(ACharacter::CharacterMovementComponentName))
@@ -33,6 +35,18 @@ void AGB_BaseCharacter::BeginPlay()
 	CharacterEquipmentComponent->EquipSidearmWeaponItem();
 }
 
+void AGB_BaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AAIController* AIController = Cast<AAIController>(NewController);
+	if (IsValid(AIController))
+	{
+		FGenericTeamId TeamId((uint8)Team);
+		AIController->SetGenericTeamId(TeamId);
+	}
+}
+
 void AGB_BaseCharacter::ChangeCrouchState()
 {
 	if (GetCharacterMovement()->IsCrouching())
@@ -47,7 +61,14 @@ void AGB_BaseCharacter::ChangeCrouchState()
 
 void AGB_BaseCharacter::StartSprint()
 {
-	bIsSprintRequested = true;
+	if (!IsAiming())
+	{
+		bIsSprintRequested = true;
+	}
+	else
+	{
+		bIsSprintRequested = false;
+	}
 	if (bIsCrouched)
 	{
 		UnCrouch();
@@ -213,6 +234,11 @@ void AGB_BaseCharacter::Landed(const FHitResult& Hit)
 		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
 		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.GetActor());
 	}
+}
+
+FGenericTeamId AGB_BaseCharacter::GetGenericTeamId() const
+{
+	return FGenericTeamId((uint8)Team);
 }
 
 void AGB_BaseCharacter::OnSprintStart_Implementation()
@@ -414,9 +440,32 @@ void AGB_BaseCharacter::PreviousItem()
 	CharacterEquipmentComponent->EquipSidearmWeaponItem();
 }
 
+void AGB_BaseCharacter::MeleeItem()
+{
+	CharacterEquipmentComponent->EquipMeleeWeapon();
+}
+
 void AGB_BaseCharacter::EquipPrimaryItem()
 {
 	CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::PrimaryItemSlot);
+}
+
+void AGB_BaseCharacter::PrimaryMeleeAttack()
+{
+	AMeleeWeaponItem* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::PrimaryAttack);
+	}
+}
+
+void AGB_BaseCharacter::SecondaryMeleeAttack()
+{
+	AMeleeWeaponItem* CurrentMeleeWeapon = CharacterEquipmentComponent->GetCurrentMeleeWeapon();
+	if (IsValid(CurrentMeleeWeapon))
+	{
+		CurrentMeleeWeapon->StartAttack(EMeleeAttackTypes::SecondaryAttack);
+	}
 }
 
 void AGB_BaseCharacter::EnableRagdoll()

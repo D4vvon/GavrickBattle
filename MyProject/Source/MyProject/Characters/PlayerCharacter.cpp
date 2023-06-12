@@ -29,6 +29,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	GetCharacterMovement()->bOrientRotationToMovement = 1;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 600.0f, 0.0f);
+	
+	Team = ETeams::Player;
 }
 
 void APlayerCharacter::MoveForward(float Value)
