@@ -3,6 +3,7 @@
 
 #include "GB_AICharacter.h"
 #include "../../Characters/CharacterComponents/AIPatrollingComponent.h"
+#include "AIModule/Classes/BehaviorTree/BehaviorTree.h"
 
 AGB_AICharacter::AGB_AICharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -13,4 +14,9 @@ AGB_AICharacter::AGB_AICharacter(const FObjectInitializer& ObjectInitializer)
 UAIPatrollingComponent* AGB_AICharacter::GetPatrollingComponent() const
 {
 	return AIPatrollingComponent;
+}
+
+UBehaviorTree* AGB_AICharacter::GetBehaviorTree() const
+{
+	return BehaviorTree;
 }

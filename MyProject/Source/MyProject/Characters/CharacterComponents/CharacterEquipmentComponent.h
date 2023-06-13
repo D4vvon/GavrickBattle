@@ -67,11 +67,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TSet<EEquipmentSlots> IgnoreSlotsWhileSwitshing;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+	EEquipmentSlots AutoEquipItemInSlot = EEquipmentSlots::None;
+
 private:
 	int32 GetAvailableAmmunitionForCurrentWeapon();
 
 	bool bIsEquipping = false;
 	FTimerHandle EquipTimer;
+
+	void AutoEquip();
 
 	UFUNCTION()
 	void OnWeaponReloadComplete();

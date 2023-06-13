@@ -175,6 +175,7 @@ void UCharacterEquipmentComponent::BeginPlay()
 	checkf(GetOwner()->IsA<AGB_BaseCharacter>(), TEXT("UCharacterEquipmentComponent::BeginPlay() onlu with AGB_BaseCharacter"))
 	CachedBaseCharacter = StaticCast<AGB_BaseCharacter*>(GetOwner());
 	CreateLoadout();
+	AutoEquip();
 	
 }
 
@@ -190,6 +191,14 @@ int32 UCharacterEquipmentComponent::GetAvailableAmmunitionForCurrentWeapon()
 {
 	check(IsValid(GetCurrentRangeWeapon()));
 	return AmmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmmoType()];
+}
+
+void UCharacterEquipmentComponent::AutoEquip()
+{
+	if (AutoEquipItemInSlot != EEquipmentSlots::None)
+	{
+		EquipItemInSlot(AutoEquipItemInSlot);
+	}
 }
 
 void UCharacterEquipmentComponent::OnWeaponReloadComplete()

@@ -54,6 +54,10 @@ void UWeaponBarrel::Shot(FVector ShotStart, FVector ShotDirection, float SpreadA
 		{
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), MuzzleFlashFX, MuzzleLocation, GetComponentRotation());
 		}
+		else if (IsValid(MuzzleFlashFX_Paricle))
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlashFX_Paricle, FTransform((GetComponentRotation() + FRotator(0.0f, 90.0f, 0.0f)), GetComponentLocation(), GetComponentScale()));
+		}
 
 		if (IsValid(TraceFX) && bIsTraceEnable)
 		{

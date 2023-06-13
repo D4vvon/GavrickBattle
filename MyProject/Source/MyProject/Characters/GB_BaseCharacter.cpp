@@ -32,7 +32,7 @@ void AGB_BaseCharacter::BeginPlay()
 
 	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AGB_BaseCharacter::OnDeath);
 
-	CharacterEquipmentComponent->EquipSidearmWeaponItem();
+	//CharacterEquipmentComponent->EquipSidearmWeaponItem();
 }
 
 void AGB_BaseCharacter::PossessedBy(AController* NewController)

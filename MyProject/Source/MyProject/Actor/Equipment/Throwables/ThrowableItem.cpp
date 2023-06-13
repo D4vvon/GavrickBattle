@@ -36,7 +36,7 @@ void AThrowableItem::Throw()
 	FVector SocketInViewSpace = PlayerViewTransform.InverseTransformPosition(ThrowableSocketLocation);
 
 	//FVector SpawnLocation = PlayerViewPoint + ViewDirection * SocketInViewSpace.X;
-	FVector SpawnLocation = PlayerViewPoint + ViewDirection + FVector(120.0f, 0.0f, 0.0f);
+	FVector SpawnLocation = PlayerViewPoint + ViewDirection + FVector(-100.0f, 0.0f, 0.0f);
 	AGB_Projectile* Projectile = GetWorld()->SpawnActor<AGB_Projectile>(ProjectileClass, SpawnLocation, FRotator::ZeroRotator);
 	if (IsValid(Projectile))
 	{

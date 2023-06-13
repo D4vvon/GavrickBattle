@@ -7,6 +7,7 @@
 #include "GB_AICharacter.generated.h"
 
 class UAIPatrollingComponent;
+class UBehaviorTree;
 UCLASS(Blueprintable)
 class MYPROJECT_API AGB_AICharacter : public AGB_BaseCharacter
 {
@@ -17,7 +18,12 @@ public:
 
 	UAIPatrollingComponent* GetPatrollingComponent() const;
 
+	UBehaviorTree* GetBehaviorTree() const;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UAIPatrollingComponent* AIPatrollingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI")
+	UBehaviorTree* BehaviorTree;
 };

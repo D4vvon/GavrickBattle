@@ -22,6 +22,9 @@ const FName SocketCharacterThrowable = FName("ThrowableSocket");
 
 const FName FXParameterTraceEnd = FName("TraceEnd");
 
+const FName BB_CurrentTarget = FName("CurrentTarget");
+const FName BB_NextLocation = FName("NextLocation");
+
 UENUM(BlueprintType)
 enum class EEquipableItemType : uint8
 {
@@ -61,6 +64,10 @@ enum class EReticleType : uint8
 	None,
 	Pistol,
 	SniperRifle,
+	HeavySniperRifle,
+	Shotgun,
+	GrenadeLauncher,
+	RocketLauncher,
 	Rifle,
 	Max UMETA(Hidden)
 };

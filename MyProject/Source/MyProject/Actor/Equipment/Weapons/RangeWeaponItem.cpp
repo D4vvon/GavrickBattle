@@ -177,7 +177,11 @@ void ARangeWeaponItem::MakeShot()
 	}
 
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
-	PlayAnimMontage(WeaponFireMontage);
+	if (IsValid(WeaponFireMontage))
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shot"));
+		PlayAnimMontage(WeaponFireMontage);
+	}
 
 	if (!IsValid(Controller))
 	{
