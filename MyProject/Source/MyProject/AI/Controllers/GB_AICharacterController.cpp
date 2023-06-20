@@ -69,6 +69,7 @@ void AGB_AICharacterController::TryMoveToNextTarget()
 		if (IsValid(Blackboard))
 		{
 			Blackboard->SetValueAsObject(BB_CurrentTarget, ClosestActor);
+			SetFocus(ClosestActor, EAIFocusPriority::Gameplay);
 		}
 		bIsPatrolling = false;
 	}
@@ -76,7 +77,8 @@ void AGB_AICharacterController::TryMoveToNextTarget()
 	{
 		FVector WayPoint = bIsPatrolling ? PatrollingComponent->SelectNexWayPoint() : PatrollingComponent->SelectClosestWayPoint();
 		if (IsValid(Blackboard))
-		{
+		{	
+			ClearFocus(EAIFocusPriority::Gameplay);
 			Blackboard->SetValueAsVector(BB_NextLocation, WayPoint);
 			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
 		}

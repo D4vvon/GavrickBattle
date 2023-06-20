@@ -38,6 +38,11 @@ void ARangeWeaponItem::StopFire()
 	bIsFiring = false;
 }
 
+bool ARangeWeaponItem::IsFiring()
+{
+	return bIsFiring;
+}
+
 void ARangeWeaponItem::StartAim()
 {
 	bIsAiming = true;
@@ -135,6 +140,11 @@ void ARangeWeaponItem::EndReload(bool bIsSuccess)
 	}
 }
 
+bool ARangeWeaponItem::IsRelaoding()
+{
+	return bIsReloading;
+}
+
 EAmmunitionType ARangeWeaponItem::GetAmmoType() const
 {
 	return AmmoType;
@@ -164,7 +174,21 @@ void ARangeWeaponItem::MakeShot()
 	{
 		return;
 	}
-	APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
+
+	FVector PlayerViewPoint;
+	FRotator PlayerViewRotation;
+	if (CharacterOwner->IsPlayerControlled())
+	{
+		APlayerController* Controller = CharacterOwner->GetController<APlayerController>(); // From center to center
+		Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
+		//PlayerViewPoint = WeaponBarell->GetComponentLocation(); //From Muzzle to center
+		//PlayerViewRotation = CharacterOwner->GetBaseAimRotation();
+	}
+	else
+	{
+		PlayerViewPoint = WeaponBarell->GetComponentLocation();
+		PlayerViewRotation = CharacterOwner->GetBaseAimRotation();
+	}
 
 	if (!CanShoot())
 	{
@@ -177,21 +201,8 @@ void ARangeWeaponItem::MakeShot()
 	}
 
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
-	if (IsValid(WeaponFireMontage))
-	{
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shot"));
-		PlayAnimMontage(WeaponFireMontage);
-	}
-
-	if (!IsValid(Controller))
-	{
-		return;
-	}
+	PlayAnimMontage(WeaponFireMontage);
 	EndReload(false);
-
-	FVector PlayerViewPoint;
-	FRotator PlayerViewRotation;
-	Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
 
 	FVector ShotStart = GetActorLocation();
 	FVector ViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);

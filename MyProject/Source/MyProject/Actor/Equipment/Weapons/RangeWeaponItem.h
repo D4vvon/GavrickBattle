@@ -28,6 +28,8 @@ public:
 	void StartFire();
 	void StopFire();
 
+	bool IsFiring();
+
 	void StartAim();
 	void StopAim();
 
@@ -44,6 +46,8 @@ public:
 
 	void StartReload();
 	void EndReload(bool bIsSuccess);
+
+	bool IsRelaoding();
 
 	EAmmunitionType GetAmmoType() const;
 
